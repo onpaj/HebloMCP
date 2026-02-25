@@ -30,11 +30,17 @@ def inject_metadata(spec: dict) -> None:
     for FastMCP to generate clean tool names and descriptions. This function
     patches the spec in-place by injecting metadata from TOOL_METADATA.
 
+    Also fixes validation issues:
+    - Makes IssuedInvoiceErrorType enum nullable (API returns null on success)
+
     Args:
         spec: OpenAPI specification dict (modified in-place)
     """
     if "paths" not in spec:
         return
+
+    # Fix schema validation issues
+    fix_schema_validation(spec)
 
     for path, path_item in spec["paths"].items():
         for method, operation in path_item.items():
@@ -57,3 +63,26 @@ def inject_metadata(spec: dict) -> None:
                 # Inject summary if missing
                 if "summary" not in operation:
                     operation["summary"] = metadata["summary"]
+
+
+def fix_schema_validation(spec: dict) -> None:
+    """Fix schema validation issues in the Heblo OpenAPI spec.
+
+    Issues fixed:
+    - IssuedInvoiceErrorType enum: Make nullable (API returns null when no error)
+    - BankStatementImportDto.errorType: Already nullable, ensure it stays that way
+
+    Args:
+        spec: OpenAPI specification dict (modified in-place)
+    """
+    schemas = spec.get("components", {}).get("schemas", {})
+
+    # Fix IssuedInvoiceErrorType enum - add nullable
+    if "IssuedInvoiceErrorType" in schemas:
+        error_type_schema = schemas["IssuedInvoiceErrorType"]
+        # Add null as a valid enum value
+        if "enum" in error_type_schema:
+            if None not in error_type_schema["enum"] and "null" not in error_type_schema["enum"]:
+                error_type_schema["enum"].append(None)
+        # Mark as nullable
+        error_type_schema["nullable"] = True
