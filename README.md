@@ -5,7 +5,7 @@
 ## Features
 
 - 🔐 **Azure AD Authentication** - Secure device code flow with token caching
-- 🛠️ **38 Curated Tools** - Analytics, Catalog, Invoices, IssuedInvoices, BankStatements, Dashboard
+- 🛠️ **52+ Curated Tools** - Analytics, Catalog, Invoices, IssuedInvoices, BankStatements, Dashboard, ManufactureOrder, ManufactureBatch
 - 🚀 **FastMCP Integration** - Built on FastMCP's OpenAPI support
 - 📦 **Easy Setup** - One-time login, automatic token renewal
 - 🐳 **Docker Support** - Production-ready container image
@@ -132,7 +132,7 @@ HebloMCP works with any MCP-compatible host. Configure according to your host's 
 
 ## Available Tools
 
-HebloMCP exposes 38 tools across 6 categories:
+HebloMCP exposes 52+ tools across 8 categories:
 
 ### Analytics (5 tools)
 - `analytics_product_margin_summary` - Get product margin summary with profit calculations
@@ -170,6 +170,24 @@ HebloMCP exposes 38 tools across 6 categories:
 - `dashboard_settings_get` - Get current dashboard settings and configuration
 - `dashboard_data` - Get dashboard data for all enabled tiles
 - And 3 more dashboard management tools...
+
+### ManufactureOrder (10 tools)
+- `manufacture_order_list` - List manufacture orders with filters
+- `manufacture_order_create` - Create new manufacture order
+- `manufacture_order_detail` - Get detailed information about a specific order
+- `manufacture_order_update` - Update existing manufacture order
+- `manufacture_order_status_update` - Update order status
+- `manufacture_order_confirm_semi_product` - Confirm semi-product in order
+- `manufacture_order_confirm_products` - Confirm products in order
+- `manufacture_order_calendar` - Get calendar view of orders
+- `manufacture_order_duplicate` - Duplicate an existing order
+- `manufacture_order_responsible_persons` - Get list of responsible persons
+
+### ManufactureBatch (4 tools)
+- `manufacture_batch_template` - Get batch template for a product
+- `manufacture_batch_calculate_by_size` - Calculate batch quantities by size
+- `manufacture_batch_calculate_by_ingredient` - Calculate batch quantities by ingredient
+- `manufacture_batch_calculate_batch_plan` - Calculate complete batch plan
 
 ## Docker Usage
 
