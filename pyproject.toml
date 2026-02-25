@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "heblo-mcp"
+version = "0.1.0"
+description = "MCP server for Heblo application analytics, catalog, and invoices"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Heblo Team" }
+]
+dependencies = [
+    "fastmcp>=3.0",
+    "httpx>=0.27.0",
+    "msal>=1.31.0",
+    "pydantic-settings>=2.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "black>=24.0.0",
+    "ruff>=0.7.0",
+]
+
+[project.scripts]
+heblo-mcp = "heblo_mcp.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/heblo_mcp"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
