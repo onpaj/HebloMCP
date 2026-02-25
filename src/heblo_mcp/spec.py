@@ -69,13 +69,25 @@ def fix_schema_validation(spec: dict) -> None:
     """Fix schema validation issues in the Heblo OpenAPI spec.
 
     Issues fixed:
+    - ErrorCodes enum: Make nullable (API returns null on success, but enum has 87 error values)
     - IssuedInvoiceErrorType enum: Make nullable (API returns null when no error)
-    - BankStatementImportDto.errorType: Already nullable, ensure it stays that way
 
     Args:
         spec: OpenAPI specification dict (modified in-place)
     """
     schemas = spec.get("components", {}).get("schemas", {})
+
+    # Fix ErrorCodes enum - THE BIG ONE (87 error codes)
+    # This is used by ALL response schemas (105+ schemas have errorCode field)
+    # When API succeeds, errorCode is null, but validation expects one of 87 values
+    if "ErrorCodes" in schemas:
+        error_codes_schema = schemas["ErrorCodes"]
+        # Add null as a valid enum value
+        if "enum" in error_codes_schema:
+            if None not in error_codes_schema["enum"] and "null" not in error_codes_schema["enum"]:
+                error_codes_schema["enum"].append(None)
+        # Mark as nullable
+        error_codes_schema["nullable"] = True
 
     # Fix IssuedInvoiceErrorType enum - add nullable
     if "IssuedInvoiceErrorType" in schemas:
