@@ -71,6 +71,7 @@ def fix_schema_validation(spec: dict) -> None:
     Issues fixed:
     - ErrorCodes enum: Make nullable (API returns null on success, but enum has 87 error values)
     - IssuedInvoiceErrorType enum: Make nullable (API returns null when no error)
+    - DateOnly schema: Change from object to string (API returns "2026-08-31", not {year, month, day})
 
     Args:
         spec: OpenAPI specification dict (modified in-place)
@@ -98,3 +99,12 @@ def fix_schema_validation(spec: dict) -> None:
                 error_type_schema["enum"].append(None)
         # Mark as nullable
         error_type_schema["nullable"] = True
+
+    # Fix DateOnly schema - API returns string "2026-08-31" not object {year, month, day}
+    if "DateOnly" in schemas:
+        # Replace the object schema with a string schema
+        schemas["DateOnly"] = {
+            "type": "string",
+            "format": "date",
+            "description": "Date in ISO 8601 format (YYYY-MM-DD)",
+        }
