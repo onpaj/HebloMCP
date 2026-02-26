@@ -67,20 +67,26 @@ def start_server_sse():
         config = HebloMCPConfig()
         mcp = await create_server_with_health(config)
 
-        # Add OAuth proxy routes for Claude Desktop authentication
-        add_oauth_routes(mcp.app, config)
-
         # Get SSE middleware (CORS + optional authentication)
         middleware = get_sse_middleware(config)
 
-        # Run the MCP server with SSE transport on port 8000
-        # Middleware is passed to configure CORS and authentication
-        await mcp.run_async(
-            transport="sse",
+        # Create the HTTP app (this is where we can add custom routes)
+        app = mcp.http_app(transport="sse", middleware=middleware)
+
+        # Add OAuth proxy routes for Claude Desktop authentication
+        add_oauth_routes(app, config)
+
+        # Run the server with the custom app
+        import uvicorn
+
+        uvicorn_config = uvicorn.Config(
+            app=app,
             host="0.0.0.0",
             port=int(os.getenv("PORT", "8000")),
-            middleware=middleware,
+            log_level="info",
         )
+        server = uvicorn.Server(uvicorn_config)
+        await server.serve()
 
     asyncio.run(run())
 
