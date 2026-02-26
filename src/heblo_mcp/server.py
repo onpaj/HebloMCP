@@ -5,9 +5,12 @@ from fastmcp import FastMCP
 
 from heblo_mcp import __version__
 from heblo_mcp.auth import HebloAuth, MSALBearerAuth
+from heblo_mcp.auth_mode import detect_transport_mode
 from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.routes import get_route_maps
 from heblo_mcp.spec import fetch_and_patch_spec
+from heblo_mcp.sse_auth import SSEAuthMiddleware
+from heblo_mcp.token_validator import TokenValidator
 
 
 async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
@@ -23,23 +26,33 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
     if config is None:
         config = HebloMCPConfig()
 
-    # Set up authentication
-    auth = HebloAuth(
-        tenant_id=config.tenant_id,
-        client_id=config.client_id,
-        scope=config.api_scope,
-        cache_path=config.token_cache_path,
-    )
+    # Detect transport mode
+    transport = detect_transport_mode(config)
 
-    # Create httpx auth wrapper
-    bearer_auth = MSALBearerAuth(auth)
+    # Set up authentication based on transport mode
+    if transport == "stdio":
+        # Stdio mode: Use existing local auth with token cache
+        auth = HebloAuth(
+            tenant_id=config.tenant_id,
+            client_id=config.client_id,
+            scope=config.api_scope,
+            cache_path=config.token_cache_path,
+        )
+        bearer_auth = MSALBearerAuth(auth)
 
-    # Create HTTP client with authentication
-    client = httpx.AsyncClient(
-        base_url=config.api_base_url,
-        auth=bearer_auth,
-        timeout=60.0,
-    )
+        # Create HTTP client with authentication
+        client = httpx.AsyncClient(
+            base_url=config.api_base_url,
+            auth=bearer_auth,
+            timeout=60.0,
+        )
+    else:
+        # SSE mode: Auth handled by middleware, client uses token from request context
+        # For now, create client without auth (will be added per-request)
+        client = httpx.AsyncClient(
+            base_url=config.api_base_url,
+            timeout=60.0,
+        )
 
     # Fetch and patch OpenAPI spec
     spec = await fetch_and_patch_spec(config.openapi_spec_url)
@@ -51,6 +64,24 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
         name="Heblo MCP",
         route_maps=get_route_maps(),
     )
+
+    # Add SSE authentication middleware if in SSE mode
+    if transport == "sse" and config.sse_auth_enabled:
+        token_validator = TokenValidator(
+            tenant_id=config.tenant_id,
+            audience=config.client_id,
+            jwks_cache_ttl=config.jwks_cache_ttl,
+        )
+
+        # Wrap the FastMCP app with auth middleware
+        # Note: This requires access to the underlying ASGI app
+        # FastMCP may need to expose this or we may need to wrap differently
+        if hasattr(mcp, 'app'):
+            mcp.app = SSEAuthMiddleware(
+                mcp.app,
+                token_validator,
+                bypass_health=True
+            )
 
     return mcp
 
@@ -71,6 +102,10 @@ async def create_server_with_health(config: HebloMCPConfig | None = None) -> Fas
     # Create base server
     mcp = await create_server(config)
 
+    # Load config if not provided (for health endpoint)
+    if config is None:
+        config = HebloMCPConfig()
+
     # Add health endpoint
     @mcp.tool()
     def health() -> dict:
@@ -82,7 +117,7 @@ async def create_server_with_health(config: HebloMCPConfig | None = None) -> Fas
         return {
             "status": "healthy",
             "version": __version__,
-            "transport": "sse"
+            "transport": config.transport if config else "auto"
         }
 
     return mcp

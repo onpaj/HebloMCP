@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
+from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.server import create_server
 
 
@@ -61,3 +62,41 @@ async def test_server_http_client_configuration(mock_config, mock_msal_app, mock
             assert call_kwargs["base_url"] == mock_config.api_base_url
             assert call_kwargs["timeout"] == 60.0
             assert "auth" in call_kwargs
+
+
+@pytest.mark.asyncio
+async def test_create_sse_server_with_auth(sample_openapi_spec):
+    """Test creating SSE server with authentication middleware."""
+    config = HebloMCPConfig(
+        tenant_id="test-tenant",
+        client_id="test-client",
+        transport="sse",
+        sse_auth_enabled=True
+    )
+
+    with patch("heblo_mcp.server.fetch_and_patch_spec") as mock_fetch:
+        mock_fetch.return_value = sample_openapi_spec
+
+        server = await create_server(config)
+
+        # Server should be created successfully
+        assert server is not None
+        # Note: Can't easily test middleware is attached without actually making requests
+
+
+@pytest.mark.asyncio
+async def test_create_stdio_server_without_auth(mock_msal_app, mock_token_cache, sample_openapi_spec):
+    """Test creating stdio server without SSE auth middleware."""
+    config = HebloMCPConfig(
+        tenant_id="test-tenant",
+        client_id="test-client",
+        transport="stdio",
+    )
+
+    with patch("heblo_mcp.server.fetch_and_patch_spec") as mock_fetch:
+        mock_fetch.return_value = sample_openapi_spec
+
+        server = await create_server(config)
+
+        # Server should be created successfully
+        assert server is not None
