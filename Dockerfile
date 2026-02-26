@@ -44,14 +44,21 @@ RUN mkdir -p /home/heblo/.config/heblo-mcp
 # Set environment variables
 ENV HEBLO_TOKEN_CACHE_PATH=/home/heblo/.config/heblo-mcp/token_cache.json
 
+# Expose port for SSE transport
+EXPOSE 8000
+
 # Volume for persistent token cache
 VOLUME ["/home/heblo/.config/heblo-mcp"]
 
 # Entrypoint
 ENTRYPOINT ["heblo-mcp"]
 
-# Default command (can be overridden)
-CMD []
+# Default command - run in SSE mode for cloud deployment
+CMD ["serve-sse"]
+
+# Health check for Azure Web App
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/health', timeout=5.0)" || exit 1
 
 # Labels
 LABEL org.opencontainers.image.title="HebloMCP"
