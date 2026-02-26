@@ -7,6 +7,7 @@ from heblo_mcp import __version__
 from heblo_mcp.auth import HebloAuth, MSALBearerAuth
 from heblo_mcp.auth_mode import detect_transport_mode
 from heblo_mcp.config import HebloMCPConfig
+from heblo_mcp.cors_middleware import CORSMiddleware
 from heblo_mcp.routes import get_route_maps
 from heblo_mcp.spec import fetch_and_patch_spec
 from heblo_mcp.sse_auth import SSEAuthMiddleware
@@ -68,19 +69,21 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
         route_maps=get_route_maps(),
     )
 
-    # Add SSE authentication middleware if in SSE mode
-    if transport == "sse" and config.sse_auth_enabled:
-        token_validator = TokenValidator(
-            tenant_id=config.tenant_id,
-            audience=config.client_id,
-            jwks_cache_ttl=config.jwks_cache_ttl,
-        )
-
-        # Wrap the FastMCP app with auth middleware
-        # Note: This requires access to the underlying ASGI app
-        # FastMCP may need to expose this or we may need to wrap differently
+    # Add SSE middleware if in SSE mode
+    if transport == "sse":
         if hasattr(mcp, "app"):
-            mcp.app = SSEAuthMiddleware(mcp.app, token_validator, bypass_health=True)
+            # Add CORS middleware (outermost)
+            mcp.app = CORSMiddleware(mcp.app)
+
+            # Add authentication middleware if enabled
+            if config.sse_auth_enabled:
+                token_validator = TokenValidator(
+                    tenant_id=config.tenant_id,
+                    audience=config.client_id,
+                    jwks_cache_ttl=config.jwks_cache_ttl,
+                )
+                # Wrap with auth middleware (inside CORS)
+                mcp.app = SSEAuthMiddleware(mcp.app, token_validator, bypass_health=True)
 
     return mcp
 
