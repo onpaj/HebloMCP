@@ -1,0 +1,101 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - '.github/workflows/deploy.yml'
+
+env:
+  DOCKERHUB_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/heblo-mcp
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # Run tests
+      - name: Run tests
+        run: |
+          pytest -v
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to DockerHub
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Extract commit SHA for tagging
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=0.1.0" >> $GITHUB_OUTPUT
+
+      # Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_IMAGE }}:latest
+            ${{ env.DOCKERHUB_IMAGE }}:sha-${{ steps.meta.outputs.sha_short }}
+            ${{ env.DOCKERHUB_IMAGE }}:${{ steps.meta.outputs.version }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_IMAGE }}:latest
+          cache-to: type=inline
+
+      # Login to Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      # Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          images: ${{ env.DOCKERHUB_IMAGE }}:sha-${{ steps.meta.outputs.sha_short }}
+
+      # Verify deployment
+      - name: Verify deployment
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 30
+
+          # Check health endpoint
+          curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || exit 1
+
+          echo "✅ Deployment successful!"
