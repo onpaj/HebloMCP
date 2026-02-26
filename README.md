@@ -256,6 +256,79 @@ See [Azure Setup Guide](docs/AZURE_SETUP.md) for complete instructions.
 az webapp log tail --resource-group rgHeblo --name heblo-mcp
 ```
 
+### Deployment Pipeline Configuration
+
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) requires specific secrets to be configured.
+
+#### GitHub Secrets Configuration
+
+Navigate to your repository: **Settings → Secrets and variables → Actions → New repository secret**
+
+**Required Secrets:**
+
+| Secret Name | Description | How to Get |
+|------------|-------------|------------|
+| `DOCKERHUB_USERNAME` | Your DockerHub username | Your DockerHub account username |
+| `DOCKERHUB_TOKEN` | DockerHub access token | Create at [hub.docker.com/settings/security](https://hub.docker.com/settings/security) |
+| `AZURE_CLIENT_ID` | Service Principal App ID | From `az ad sp create-for-rbac` output: `clientId` |
+| `AZURE_CLIENT_SECRET` | Service Principal secret | From `az ad sp create-for-rbac` output: `clientSecret` |
+| `AZURE_TENANT_ID` | Azure tenant ID | From `az ad sp create-for-rbac` output: `tenantId` |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID | From `az ad sp create-for-rbac` output: `subscriptionId` |
+| `AZURE_WEBAPP_NAME` | Azure Web App name | Example: `heblo-mcp` |
+| `AZURE_RESOURCE_GROUP` | Azure resource group | Example: `rgHeblo` |
+
+**Create Azure Service Principal:**
+```bash
+az ad sp create-for-rbac \
+  --name "sp-heblo-mcp-deploy" \
+  --role Contributor \
+  --scopes /subscriptions/$(az account show --query id -o tsv)/resourceGroups/rgHeblo \
+  --sdk-auth
+```
+
+Save the entire JSON output - you'll need values from it for the GitHub Secrets above.
+
+#### Azure App Settings (Runtime Configuration)
+
+These are configured in Azure Portal or via Azure CLI for the running application:
+
+**Required App Settings:**
+
+| Setting Name | Description | Example Value |
+|-------------|-------------|---------------|
+| `HEBLO_TENANT_ID` | Your Heblo tenant ID | From Azure AD app registration |
+| `HEBLO_CLIENT_ID` | Your Heblo client ID | From Azure AD app registration |
+| `HEBLO_TRANSPORT` | Transport mode for cloud | `sse` |
+| `WEBSITES_PORT` | Port for Azure Web App | `8000` |
+
+**Configure via Azure CLI:**
+```bash
+az webapp config appsettings set \
+  --resource-group rgHeblo \
+  --name heblo-mcp \
+  --settings \
+    HEBLO_TENANT_ID="your-tenant-id" \
+    HEBLO_CLIENT_ID="your-client-id" \
+    HEBLO_TRANSPORT="sse" \
+    WEBSITES_PORT="8000"
+```
+
+#### Deployment Workflow
+
+Once secrets are configured, the deployment is automatic:
+
+1. **Push to main** triggers the workflow
+2. **Tests run** - All 51 tests must pass
+3. **Docker build** - Multi-stage build creates optimized image
+4. **Push to DockerHub** - Image tagged with `latest`, `sha-<commit>`, and version
+5. **Deploy to Azure** - Azure pulls the new image and deploys
+6. **Health check** - Workflow verifies deployment succeeded
+
+**Monitor deployment:**
+- GitHub Actions tab shows workflow progress
+- Azure Portal shows deployment status
+- Use deployment checklist: [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md)
+
 For detailed deployment steps, see:
 - [Azure Setup Guide](docs/AZURE_SETUP.md)
 - [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)
