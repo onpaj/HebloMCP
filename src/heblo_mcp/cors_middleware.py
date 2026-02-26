@@ -1,12 +1,14 @@
 """CORS middleware for SSE transport."""
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 
 class CORSMiddleware:
-    """ASGI middleware for handling CORS preflight requests.
+    """Starlette-compatible ASGI middleware for handling CORS preflight requests.
 
     Allows MCP clients to make cross-origin requests to the SSE endpoint.
+    This middleware intercepts requests BEFORE Starlette routing, so it can
+    handle OPTIONS requests even when routes don't explicitly allow them.
     """
 
     def __init__(
@@ -36,12 +38,12 @@ class CORSMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Handle OPTIONS preflight requests
+        # Handle OPTIONS preflight requests BEFORE routing
         if scope["method"] == "OPTIONS":
             await self._send_preflight_response(send)
             return
 
-        # For other requests, add CORS headers
+        # For other requests, add CORS headers to responses
         async def send_with_cors(message):
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
@@ -71,3 +73,7 @@ class CORSMiddleware:
             "type": "http.response.body",
             "body": b"",
         })
+
+
+# Type alias for Starlette Middleware compatibility
+DispatchFunction = Callable[[object, Callable, Callable], Awaitable[None]]

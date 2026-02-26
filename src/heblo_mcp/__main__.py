@@ -60,15 +60,23 @@ def start_server_sse():
     import asyncio
     import os
 
-    from heblo_mcp.server import create_server_with_health
+    from heblo_mcp.server import create_server_with_health, get_sse_middleware
 
     async def run():
         # Create server with health endpoint
         mcp = await create_server_with_health()
 
+        # Get SSE middleware (CORS + optional authentication)
+        middleware = get_sse_middleware()
+
         # Run the MCP server with SSE transport on port 8000
-        # Use run_async() to work within existing event loop
-        await mcp.run_async(transport="sse", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+        # Middleware is passed to configure CORS and authentication
+        await mcp.run_async(
+            transport="sse",
+            host="0.0.0.0",
+            port=int(os.getenv("PORT", "8000")),
+            middleware=middleware,
+        )
 
     asyncio.run(run())
 

@@ -2,6 +2,7 @@
 
 import httpx
 from fastmcp import FastMCP
+from starlette.middleware import Middleware
 
 from heblo_mcp import __version__
 from heblo_mcp.auth import HebloAuth, MSALBearerAuth
@@ -69,23 +70,45 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
         route_maps=get_route_maps(),
     )
 
-    # Add SSE middleware if in SSE mode
-    if transport == "sse":
-        if hasattr(mcp, "app"):
-            # Add CORS middleware (outermost)
-            mcp.app = CORSMiddleware(mcp.app)
-
-            # Add authentication middleware if enabled
-            if config.sse_auth_enabled:
-                token_validator = TokenValidator(
-                    tenant_id=config.tenant_id,
-                    audience=config.client_id,
-                    jwks_cache_ttl=config.jwks_cache_ttl,
-                )
-                # Wrap with auth middleware (inside CORS)
-                mcp.app = SSEAuthMiddleware(mcp.app, token_validator, bypass_health=True)
+    # Note: SSE middleware (CORS, auth) is configured when calling run_async()
+    # See get_sse_middleware() for middleware configuration
 
     return mcp
+
+
+def get_sse_middleware(config: HebloMCPConfig | None = None) -> list[Middleware]:
+    """Get Starlette middleware for SSE mode.
+
+    Args:
+        config: Configuration object (defaults to loading from environment)
+
+    Returns:
+        List of Starlette Middleware objects to be passed to run_async()
+    """
+    if config is None:
+        config = HebloMCPConfig()
+
+    middleware_list: list[Middleware] = []
+
+    # Add CORS middleware (outermost - runs first)
+    middleware_list.append(Middleware(CORSMiddleware))
+
+    # Add authentication middleware if enabled (inside CORS)
+    if config.sse_auth_enabled:
+        token_validator = TokenValidator(
+            tenant_id=config.tenant_id,
+            audience=config.client_id,
+            jwks_cache_ttl=config.jwks_cache_ttl,
+        )
+        middleware_list.append(
+            Middleware(
+                SSEAuthMiddleware,
+                token_validator=token_validator,
+                bypass_health=True,
+            )
+        )
+
+    return middleware_list
 
 
 # Create the default server instance for FastMCP CLI
