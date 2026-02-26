@@ -144,7 +144,7 @@ Expected output:
 
 1. Push code to `main` branch
 2. GitHub Actions will automatically build and deploy
-3. Access health endpoint: https://heblo-mcp.azurewebsites.net/health
+3. Access root endpoint: https://heblo-mcp.azurewebsites.net/
 4. Connect MCP client to: https://heblo-mcp.azurewebsites.net
 
 ## Troubleshooting

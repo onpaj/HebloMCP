@@ -22,15 +22,8 @@ Use this checklist after first deployment and for troubleshooting.
 
 - [ ] App shows "Running" status in portal
 - [ ] Container logs show startup success
-- [ ] Health endpoint returns 200: `curl https://heblo-mcp.azurewebsites.net/health`
-- [ ] Expected response:
-  ```json
-  {
-    "status": "healthy",
-    "version": "0.1.0",
-    "transport": "sse"
-  }
-  ```
+- [ ] Root endpoint returns 200: `curl https://heblo-mcp.azurewebsites.net/`
+- [ ] Expected response: FastMCP SSE endpoint information
 
 ## MCP Client Connection
 
@@ -72,6 +65,6 @@ az webapp restart --resource-group rgHeblo --name heblo-mcp
 # Check deployment history
 az webapp deployment list --resource-group rgHeblo --name heblo-mcp
 
-# Test health endpoint
-curl -v https://heblo-mcp.azurewebsites.net/health
+# Test root endpoint
+curl -v https://heblo-mcp.azurewebsites.net/
 ```

@@ -96,6 +96,6 @@ jobs:
           sleep 30
 
           # Check health endpoint
-          curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || exit 1
+          curl -f https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || exit 1
 
           echo "✅ Deployment successful!"

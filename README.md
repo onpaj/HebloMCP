@@ -248,7 +248,7 @@ See [Azure Setup Guide](docs/AZURE_SETUP.md) for complete instructions.
 4. GitHub Actions automatically deploys to Azure
 
 **Access:**
-- Health check: `https://heblo-mcp.azurewebsites.net/health`
+- Root endpoint (SSE): `https://heblo-mcp.azurewebsites.net/`
 - SSE endpoint: `https://heblo-mcp.azurewebsites.net`
 
 **Monitoring:**
