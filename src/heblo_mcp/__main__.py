@@ -68,8 +68,8 @@ def start_server_sse():
         mcp = await create_server_with_health()
 
         # Run the MCP server with SSE transport on port 8000
-        # FastMCP's run() method will automatically use SSE when not in stdio mode
-        await mcp.run(
+        # Use run_async() to work within existing event loop
+        await mcp.run_async(
             transport="sse",
             host="0.0.0.0",
             port=int(os.getenv("PORT", "8000"))

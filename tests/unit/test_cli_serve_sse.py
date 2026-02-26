@@ -25,7 +25,7 @@ async def test_start_server_sse_runs():
     # Mock create_server_with_health which is imported inside start_server_sse
     with patch('heblo_mcp.server.create_server_with_health') as mock_create_server:
         mock_mcp = AsyncMock()
-        mock_mcp.run = AsyncMock(return_value=None)
+        mock_mcp.run_async = AsyncMock(return_value=None)
         mock_create_server.return_value = mock_mcp
 
         with patch('asyncio.run') as mock_asyncio_run:
