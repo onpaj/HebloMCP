@@ -158,6 +158,32 @@ async def create_server_with_health(config: HebloMCPConfig | None = None) -> Fas
     return mcp
 
 
+def add_oauth_routes(app, config: HebloMCPConfig):
+    """Add OAuth proxy routes to the FastMCP app.
+
+    Args:
+        app: Starlette/FastAPI application instance
+        config: HebloMCP configuration
+    """
+    from heblo_mcp.oauth_endpoints import OAuthEndpoints
+    from heblo_mcp.oauth_session import OAuthSessionStore
+
+    # Create session store and OAuth endpoints
+    session_store = OAuthSessionStore()
+    oauth_endpoints = OAuthEndpoints(config, session_store)
+
+    # Add OAuth routes
+    from starlette.routing import Route
+
+    app.routes.extend(
+        [
+            Route("/authorize", oauth_endpoints.authorize, methods=["GET"], name="oauth_authorize"),
+            Route("/callback", oauth_endpoints.callback, methods=["GET"], name="oauth_callback"),
+            Route("/token", oauth_endpoints.token, methods=["POST"], name="oauth_token"),
+        ]
+    )
+
+
 async def get_mcp_server() -> FastMCP:
     """Get or create the MCP server instance.
 

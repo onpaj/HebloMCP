@@ -60,6 +60,12 @@ class SSEAuthMiddleware:
             await self.app(scope, receive, send)
             return
 
+        # Bypass OAuth endpoints (they handle their own auth)
+        oauth_paths = ["/authorize", "/callback", "/token"]
+        if scope.get("path") in oauth_paths:
+            await self.app(scope, receive, send)
+            return
+
         # Extract token
         headers = scope.get("headers", [])
         token = _extract_bearer_token(headers)

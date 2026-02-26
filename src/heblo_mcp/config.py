@@ -23,6 +23,7 @@ class HebloMCPConfig(BaseSettings):
     # Azure AD Authentication
     tenant_id: str
     client_id: str
+    client_secret: str | None = None  # Required for OAuth proxy to exchange codes
     api_scope: str = "api://8b34be89-cef4-445a-929a-bc1a21dce0cb/access_as_user"
 
     # API Configuration

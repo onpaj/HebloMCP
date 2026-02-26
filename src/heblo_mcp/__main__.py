@@ -60,14 +60,18 @@ def start_server_sse():
     import asyncio
     import os
 
-    from heblo_mcp.server import create_server_with_health, get_sse_middleware
+    from heblo_mcp.server import add_oauth_routes, create_server_with_health, get_sse_middleware
 
     async def run():
         # Create server with health endpoint
-        mcp = await create_server_with_health()
+        config = HebloMCPConfig()
+        mcp = await create_server_with_health(config)
+
+        # Add OAuth proxy routes for Claude Desktop authentication
+        add_oauth_routes(mcp.app, config)
 
         # Get SSE middleware (CORS + optional authentication)
-        middleware = get_sse_middleware()
+        middleware = get_sse_middleware(config)
 
         # Run the MCP server with SSE transport on port 8000
         # Middleware is passed to configure CORS and authentication
