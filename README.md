@@ -207,7 +207,7 @@ docker run -it --rm \
   heblo-mcp login
 ```
 
-### Run Server
+### Run Server (stdio mode - local)
 
 ```bash
 docker run -i \
@@ -216,6 +216,49 @@ docker run -i \
   -e HEBLO_CLIENT_ID=your-client-id \
   heblo-mcp
 ```
+
+### Run Server (SSE mode - cloud/remote)
+
+```bash
+docker run -p 8000:8000 \
+  -v heblo-mcp-cache:/home/heblo/.config/heblo-mcp \
+  -e HEBLO_TENANT_ID=your-tenant-id \
+  -e HEBLO_CLIENT_ID=your-client-id \
+  heblo-mcp serve-sse
+```
+
+## Cloud Deployment
+
+### Azure Web App Deployment
+
+HebloMCP can be deployed to Azure Web App for remote access via SSE transport.
+
+**Prerequisites:**
+- Azure subscription
+- DockerHub account
+- GitHub repository
+
+**Setup:**
+See [Azure Setup Guide](docs/AZURE_SETUP.md) for complete instructions.
+
+**Quick Start:**
+1. Create Azure Service Principal
+2. Configure GitHub Secrets
+3. Push to `main` branch
+4. GitHub Actions automatically deploys to Azure
+
+**Access:**
+- Health check: `https://heblo-mcp.azurewebsites.net/health`
+- SSE endpoint: `https://heblo-mcp.azurewebsites.net`
+
+**Monitoring:**
+```bash
+az webapp log tail --resource-group rgHeblo --name heblo-mcp
+```
+
+For detailed deployment steps, see:
+- [Azure Setup Guide](docs/AZURE_SETUP.md)
+- [Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)
 
 ## Development
 
