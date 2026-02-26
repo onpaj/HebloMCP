@@ -9,6 +9,7 @@ from heblo_mcp.auth import HebloAuth, MSALBearerAuth
 from heblo_mcp.auth_mode import detect_transport_mode
 from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.cors_middleware import CORSMiddleware
+from heblo_mcp.health_middleware import HealthCheckMiddleware
 from heblo_mcp.routes import get_route_maps
 from heblo_mcp.spec import fetch_and_patch_spec
 from heblo_mcp.sse_auth import SSEAuthMiddleware
@@ -92,6 +93,15 @@ def get_sse_middleware(config: HebloMCPConfig | None = None) -> list[Middleware]
 
     # Add CORS middleware (outermost - runs first)
     middleware_list.append(Middleware(CORSMiddleware))
+
+    # Add health check middleware (responds to GET / with HTTP health status)
+    middleware_list.append(
+        Middleware(
+            HealthCheckMiddleware,
+            version=__version__,
+            transport=config.transport if config else "auto",
+        )
+    )
 
     # Add authentication middleware if enabled (inside CORS)
     if config.sse_auth_enabled:
