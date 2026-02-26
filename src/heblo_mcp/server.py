@@ -58,6 +58,35 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
 mcp = None  # Will be initialized when needed
 
 
+async def create_server_with_health(config: HebloMCPConfig | None = None) -> FastMCP:
+    """Create server with health endpoint for SSE mode.
+
+    Args:
+        config: Configuration object (defaults to loading from environment)
+
+    Returns:
+        Configured FastMCP server instance with health endpoint
+    """
+    # Create base server
+    mcp = await create_server(config)
+
+    # Add health endpoint
+    @mcp.tool()
+    def health() -> dict:
+        """Health check endpoint for Azure Web App.
+
+        Returns:
+            Health status information
+        """
+        return {
+            "status": "healthy",
+            "version": "0.1.0",
+            "transport": "sse"
+        }
+
+    return mcp
+
+
 async def get_mcp_server() -> FastMCP:
     """Get or create the MCP server instance.
 
