@@ -101,3 +101,33 @@ def test_config_from_env(monkeypatch, tmp_path: Path):
     assert config.client_id == "env-client"
     assert config.api_scope == "env-scope"
     assert config.api_base_url == "https://env.example.com"
+
+
+def test_config_has_transport_field():
+    """Test that config has transport field with default auto."""
+    config = HebloMCPConfig(
+        tenant_id="test-tenant",
+        client_id="test-client"
+    )
+    assert hasattr(config, "transport")
+    assert config.transport == "auto"
+
+
+def test_config_has_sse_auth_enabled_field():
+    """Test that config has sse_auth_enabled field."""
+    config = HebloMCPConfig(
+        tenant_id="test-tenant",
+        client_id="test-client"
+    )
+    assert hasattr(config, "sse_auth_enabled")
+    assert config.sse_auth_enabled is True
+
+
+def test_config_has_jwks_cache_ttl_field():
+    """Test that config has jwks_cache_ttl field with default 3600."""
+    config = HebloMCPConfig(
+        tenant_id="test-tenant",
+        client_id="test-client"
+    )
+    assert hasattr(config, "jwks_cache_ttl")
+    assert config.jwks_cache_ttl == 3600

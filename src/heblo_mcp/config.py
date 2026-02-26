@@ -32,6 +32,11 @@ class HebloMCPConfig(BaseSettings):
     # Token Cache
     token_cache_path: Path = Path.home() / ".config" / "heblo-mcp" / "token_cache.json"
 
+    # Transport and Authentication
+    transport: str = "auto"  # "stdio", "sse", or "auto" to detect
+    sse_auth_enabled: bool = True  # Enable SSE authentication validation
+    jwks_cache_ttl: int = 3600  # JWKS cache time-to-live in seconds
+
     def __init__(self, **kwargs):
         """Initialize config and ensure token cache directory exists."""
         super().__init__(**kwargs)
