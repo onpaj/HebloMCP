@@ -246,7 +246,7 @@ Add to your Claude Code MCP config:
 {
   "mcpServers": {
     "heblo": {
-      "url": "https://heblo-mcp.azurewebsites.net",
+      "url": "https://mcp.heblo.anela.cz",
       "transport": "sse",
       "auth": {
         "type": "oauth",
@@ -295,8 +295,8 @@ See [Azure Setup Guide](docs/AZURE_SETUP.md) for complete instructions.
 4. GitHub Actions automatically deploys to Azure
 
 **Access:**
-- Root endpoint (SSE): `https://heblo-mcp.azurewebsites.net/`
-- SSE endpoint: `https://heblo-mcp.azurewebsites.net`
+- Root endpoint (SSE): `https://mcp.heblo.anela.cz/`
+- SSE endpoint: `https://mcp.heblo.anela.cz`
 
 **Monitoring:**
 ```bash
