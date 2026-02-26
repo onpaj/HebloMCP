@@ -227,6 +227,53 @@ docker run -p 8000:8000 \
   heblo-mcp serve-sse
 ```
 
+### SSE Mode Authentication
+
+When deployed in SSE mode, HebloMCP requires OAuth authentication for security.
+
+**How it works:**
+1. Claude Code client initiates Azure AD device code flow
+2. User authenticates in browser with Microsoft account
+3. Client sends Bearer token in Authorization header with each request
+4. Server validates JWT token using Azure AD public keys
+5. Server uses user's token for all Heblo API calls
+
+**Configuration:**
+
+Add to your Claude Code MCP config:
+
+```json
+{
+  "mcpServers": {
+    "heblo": {
+      "url": "https://heblo-mcp.azurewebsites.net",
+      "transport": "sse",
+      "auth": {
+        "type": "oauth",
+        "tenant_id": "your-tenant-id",
+        "client_id": "your-client-id",
+        "scope": "api://8b34be89-cef4-445a-929a-bc1a21dce0cb/access_as_user"
+      }
+    }
+  }
+}
+```
+
+**Server Environment Variables:**
+
+```bash
+HEBLO_TRANSPORT=sse
+HEBLO_SSE_AUTH_ENABLED=true
+HEBLO_TENANT_ID=your-tenant-id
+HEBLO_CLIENT_ID=your-client-id
+```
+
+**Security:**
+- Each user authenticates with their own Microsoft account
+- User-level audit trail in Heblo API
+- Stateless token validation (no server sessions)
+- Health endpoint (/) bypasses auth for Azure monitoring
+
 ## Cloud Deployment
 
 ### Azure Web App Deployment
