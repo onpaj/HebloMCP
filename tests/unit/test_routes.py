@@ -1,6 +1,5 @@
 """Unit tests for routes module."""
 
-import pytest
 
 from heblo_mcp.routes import TOOL_METADATA, get_route_maps
 
@@ -64,8 +63,7 @@ def test_tool_metadata_product_type_guidance():
 
         # Should mention product types or code patterns
         assert any(
-            keyword in summary
-            for keyword in ["Product", "SemiProduct", "HINT", "type"]
+            keyword in summary for keyword in ["Product", "SemiProduct", "HINT", "type"]
         ), f"Missing product type guidance in {path}"
 
 
@@ -123,14 +121,10 @@ def test_tool_metadata_coverage_by_category():
         1 for (method, path) in TOOL_METADATA.keys() if path.startswith("/api/invoices")
     )
     issued_invoices_count = sum(
-        1
-        for (method, path) in TOOL_METADATA.keys()
-        if path.startswith("/api/IssuedInvoices")
+        1 for (method, path) in TOOL_METADATA.keys() if path.startswith("/api/IssuedInvoices")
     )
     bank_statements_count = sum(
-        1
-        for (method, path) in TOOL_METADATA.keys()
-        if path.startswith("/api/bank-statements")
+        1 for (method, path) in TOOL_METADATA.keys() if path.startswith("/api/bank-statements")
     )
     dashboard_count = sum(
         1 for (method, path) in TOOL_METADATA.keys() if path.startswith("/api/Dashboard")
@@ -140,6 +134,10 @@ def test_tool_metadata_coverage_by_category():
     assert analytics_count >= 3, f"Expected at least 3 analytics tools, got {analytics_count}"
     assert catalog_count >= 10, f"Expected at least 10 catalog tools, got {catalog_count}"
     assert invoices_count >= 3, f"Expected at least 3 invoice tools, got {invoices_count}"
-    assert issued_invoices_count >= 2, f"Expected at least 2 issued invoice tools, got {issued_invoices_count}"
-    assert bank_statements_count >= 2, f"Expected at least 2 bank statement tools, got {bank_statements_count}"
+    assert (
+        issued_invoices_count >= 2
+    ), f"Expected at least 2 issued invoice tools, got {issued_invoices_count}"
+    assert (
+        bank_statements_count >= 2
+    ), f"Expected at least 2 bank statement tools, got {bank_statements_count}"
     assert dashboard_count >= 3, f"Expected at least 3 dashboard tools, got {dashboard_count}"

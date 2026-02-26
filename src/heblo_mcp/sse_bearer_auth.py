@@ -1,6 +1,6 @@
 """Bearer auth for SSE mode that uses user context from request."""
 
-from typing import Generator
+from collections.abc import Generator
 
 import httpx
 

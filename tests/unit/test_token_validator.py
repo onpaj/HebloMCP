@@ -1,12 +1,14 @@
 """Tests for JWT token validation."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
-from heblo_mcp.token_validator import TokenValidator, TokenValidationError
+
+import pytest
+
+from heblo_mcp.token_validator import TokenValidationError, TokenValidator
 from tests.fixtures.jwt_fixtures import (
+    create_test_jwks,
     create_test_jwt,
     create_test_rsa_keypair,
-    create_test_jwks,
 )
 
 
@@ -26,14 +28,10 @@ def mock_jwks(rsa_keys):
 @pytest.fixture
 async def validator(mock_jwks):
     """Create a TokenValidator with mocked JWKS fetching."""
-    validator = TokenValidator(
-        tenant_id="test-tenant",
-        audience="test-client",
-        jwks_cache_ttl=3600
-    )
+    validator = TokenValidator(tenant_id="test-tenant", audience="test-client", jwks_cache_ttl=3600)
 
     # Mock the JWKS fetch
-    with patch.object(validator, '_fetch_jwks', new=AsyncMock(return_value=mock_jwks)):
+    with patch.object(validator, "_fetch_jwks", new=AsyncMock(return_value=mock_jwks)):
         yield validator
 
 
@@ -46,7 +44,7 @@ async def test_validate_valid_token(validator, rsa_keys):
         client_id="test-client",
         email="user@example.com",
         object_id="obj-123",
-        private_key=private_key
+        private_key=private_key,
     )
 
     user_ctx = await validator.validate_token(token)
@@ -62,10 +60,7 @@ async def test_validate_expired_token(validator, rsa_keys):
     """Test that expired tokens are rejected."""
     private_key, _ = rsa_keys
     token = create_test_jwt(
-        tenant_id="test-tenant",
-        client_id="test-client",
-        expired=True,
-        private_key=private_key
+        tenant_id="test-tenant", client_id="test-client", expired=True, private_key=private_key
     )
 
     with pytest.raises(TokenValidationError, match="expired"):
@@ -80,7 +75,7 @@ async def test_validate_wrong_audience(validator, rsa_keys):
         tenant_id="test-tenant",
         client_id="test-client",
         wrong_audience=True,
-        private_key=private_key
+        private_key=private_key,
     )
 
     with pytest.raises(TokenValidationError, match="audience"):
@@ -92,10 +87,7 @@ async def test_validate_wrong_issuer(validator, rsa_keys):
     """Test that tokens with wrong issuer are rejected."""
     private_key, _ = rsa_keys
     token = create_test_jwt(
-        tenant_id="test-tenant",
-        client_id="test-client",
-        wrong_issuer=True,
-        private_key=private_key
+        tenant_id="test-tenant", client_id="test-client", wrong_issuer=True, private_key=private_key
     )
 
     with pytest.raises(TokenValidationError, match="issuer"):
@@ -116,7 +108,9 @@ async def test_jwks_caching(validator, mock_jwks):
     await validator._get_jwks()
 
     # Mock to track calls
-    with patch.object(validator, '_fetch_jwks', new=AsyncMock(return_value=mock_jwks)) as mock_fetch:
+    with patch.object(
+        validator, "_fetch_jwks", new=AsyncMock(return_value=mock_jwks)
+    ) as mock_fetch:
         # Should use cache
         await validator._get_jwks()
         mock_fetch.assert_not_called()

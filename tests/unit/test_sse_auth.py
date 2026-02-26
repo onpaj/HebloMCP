@@ -1,9 +1,11 @@
 """Tests for SSE authentication middleware."""
 
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
+
 from heblo_mcp.sse_auth import SSEAuthMiddleware
-from heblo_mcp.token_validator import TokenValidator, TokenValidationError
+from heblo_mcp.token_validator import TokenValidationError, TokenValidator
 from heblo_mcp.user_context import UserContext
 
 
@@ -82,10 +84,7 @@ async def test_middleware_with_valid_token(mock_validator, mock_app):
     """Test middleware with valid token."""
     # Setup
     user_ctx = UserContext(
-        email="user@example.com",
-        tenant_id="test-tenant",
-        object_id="obj-123",
-        token="valid-token"
+        email="user@example.com", tenant_id="test-tenant", object_id="obj-123", token="valid-token"
     )
     mock_validator.validate_token.return_value = user_ctx
 

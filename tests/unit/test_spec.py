@@ -2,8 +2,6 @@
 
 import copy
 
-import pytest
-
 from heblo_mcp.spec import fix_schema_validation, inject_metadata
 
 

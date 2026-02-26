@@ -1,13 +1,12 @@
 """SSE authentication middleware for HebloMCP."""
 
 import json
-from typing import Callable, Optional
+from collections.abc import Callable
 
-from heblo_mcp.token_validator import TokenValidator, TokenValidationError
-from heblo_mcp.user_context import UserContext
+from heblo_mcp.token_validator import TokenValidationError, TokenValidator
 
 
-def _extract_bearer_token(headers: list[tuple[bytes, bytes]]) -> Optional[str]:
+def _extract_bearer_token(headers: list[tuple[bytes, bytes]]) -> str | None:
     """Extract Bearer token from Authorization header.
 
     Args:
@@ -31,12 +30,7 @@ class SSEAuthMiddleware:
     user context to request scope.
     """
 
-    def __init__(
-        self,
-        app: Callable,
-        token_validator: TokenValidator,
-        bypass_health: bool = True
-    ):
+    def __init__(self, app: Callable, token_validator: TokenValidator, bypass_health: bool = True):
         """Initialize middleware.
 
         Args:
@@ -72,10 +66,7 @@ class SSEAuthMiddleware:
 
         if not token:
             # No token - send 401
-            await self._send_401(
-                send,
-                "Authentication required. Please provide Bearer token."
-            )
+            await self._send_401(send, "Authentication required. Please provide Bearer token.")
             return
 
         try:
@@ -101,16 +92,20 @@ class SSEAuthMiddleware:
         """
         body = json.dumps({"error": message}).encode("utf-8")
 
-        await send({
-            "type": "http.response.start",
-            "status": 401,
-            "headers": [
-                (b"content-type", b"application/json"),
-                (b"content-length", str(len(body)).encode("utf-8")),
-            ],
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 401,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"content-length", str(len(body)).encode("utf-8")),
+                ],
+            }
+        )
 
-        await send({
-            "type": "http.response.body",
-            "body": body,
-        })
+        await send(
+            {
+                "type": "http.response.body",
+                "body": body,
+            }
+        )

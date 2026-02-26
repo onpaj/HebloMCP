@@ -22,7 +22,7 @@ def login_command():
         )
 
         # Perform device code authentication
-        result = auth.login()
+        auth.login()
 
         # Show success message
         print("\n✅ Authentication successful!")
@@ -39,13 +39,12 @@ def login_command():
 def start_server():
     """Start the MCP server in stdio mode."""
     # Import FastMCP runtime here to avoid loading during login
-    from fastmcp import FastMCP
-
-    from heblo_mcp.server import get_mcp_server
 
     # FastMCP will handle the async setup and stdio transport
     # We just need to provide the server factory
     import asyncio
+
+    from heblo_mcp.server import get_mcp_server
 
     async def run():
         mcp = await get_mcp_server()
@@ -69,11 +68,7 @@ def start_server_sse():
 
         # Run the MCP server with SSE transport on port 8000
         # Use run_async() to work within existing event loop
-        await mcp.run_async(
-            transport="sse",
-            host="0.0.0.0",
-            port=int(os.getenv("PORT", "8000"))
-        )
+        await mcp.run_async(transport="sse", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
 
     asyncio.run(run())
 

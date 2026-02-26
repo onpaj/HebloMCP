@@ -1,8 +1,7 @@
 """Integration tests for MCP server creation and operation."""
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import httpx
 import pytest
 
 from heblo_mcp.config import HebloMCPConfig
@@ -10,7 +9,9 @@ from heblo_mcp.server import create_server
 
 
 @pytest.mark.asyncio
-async def test_create_server_success(mock_config, mock_msal_app, mock_token_cache, sample_openapi_spec):
+async def test_create_server_success(
+    mock_config, mock_msal_app, mock_token_cache, sample_openapi_spec
+):
     """Test successful MCP server creation."""
     # Mock fetch_and_patch_spec
     with patch("heblo_mcp.server.fetch_and_patch_spec") as mock_fetch:
@@ -28,7 +29,9 @@ async def test_create_server_success(mock_config, mock_msal_app, mock_token_cach
 
 
 @pytest.mark.asyncio
-async def test_create_server_with_default_config(mock_msal_app, mock_token_cache, sample_openapi_spec, monkeypatch):
+async def test_create_server_with_default_config(
+    mock_msal_app, mock_token_cache, sample_openapi_spec, monkeypatch
+):
     """Test server creation with default config loading."""
     # Set required env vars
     monkeypatch.setenv("HEBLO_TENANT_ID", "test-tenant")
@@ -44,7 +47,9 @@ async def test_create_server_with_default_config(mock_msal_app, mock_token_cache
 
 
 @pytest.mark.asyncio
-async def test_server_http_client_configuration(mock_config, mock_msal_app, mock_token_cache, sample_openapi_spec):
+async def test_server_http_client_configuration(
+    mock_config, mock_msal_app, mock_token_cache, sample_openapi_spec
+):
     """Test that HTTP client is correctly configured."""
     with patch("heblo_mcp.server.fetch_and_patch_spec") as mock_fetch:
         mock_fetch.return_value = sample_openapi_spec
@@ -68,10 +73,7 @@ async def test_server_http_client_configuration(mock_config, mock_msal_app, mock
 async def test_create_sse_server_with_auth(sample_openapi_spec):
     """Test creating SSE server with authentication middleware."""
     config = HebloMCPConfig(
-        tenant_id="test-tenant",
-        client_id="test-client",
-        transport="sse",
-        sse_auth_enabled=True
+        tenant_id="test-tenant", client_id="test-client", transport="sse", sse_auth_enabled=True
     )
 
     with patch("heblo_mcp.server.fetch_and_patch_spec") as mock_fetch:
@@ -85,7 +87,9 @@ async def test_create_sse_server_with_auth(sample_openapi_spec):
 
 
 @pytest.mark.asyncio
-async def test_create_stdio_server_without_auth(mock_msal_app, mock_token_cache, sample_openapi_spec):
+async def test_create_stdio_server_without_auth(
+    mock_msal_app, mock_token_cache, sample_openapi_spec
+):
     """Test creating stdio server without SSE auth middleware."""
     config = HebloMCPConfig(
         tenant_id="test-tenant",

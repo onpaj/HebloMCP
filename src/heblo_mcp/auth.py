@@ -1,8 +1,7 @@
 """Authentication handling for HebloMCP using MSAL device code flow."""
 
-import json
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import httpx
 import msal
@@ -106,8 +105,7 @@ class HebloAuth:
 
         # No cached token available
         raise Exception(
-            "No cached authentication token found. "
-            "Please run 'heblo-mcp login' to authenticate."
+            "No cached authentication token found. " "Please run 'heblo-mcp login' to authenticate."
         )
 
 

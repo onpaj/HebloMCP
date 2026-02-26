@@ -1,8 +1,8 @@
 """Tests for SSE bearer auth that uses request context."""
 
+
 import httpx
-import pytest
-from unittest.mock import Mock
+
 from heblo_mcp.sse_bearer_auth import SSEBearerAuth
 from heblo_mcp.user_context import UserContext
 
@@ -13,7 +13,7 @@ def test_sse_bearer_auth_adds_token():
         email="user@example.com",
         tenant_id="test-tenant",
         object_id="obj-123",
-        token="user-token-123"
+        token="user-token-123",
     )
 
     auth = SSEBearerAuth()

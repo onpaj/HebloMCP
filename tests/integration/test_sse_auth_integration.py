@@ -1,7 +1,9 @@
 """Integration tests for SSE authentication."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, Mock
+
 from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.server import create_server
 from tests.fixtures.jwt_fixtures import create_test_jwt, create_test_rsa_keypair
@@ -20,10 +22,7 @@ async def test_sse_server_accepts_valid_token(rsa_keys, sample_openapi_spec):
 
     # Create config for SSE mode
     config = HebloMCPConfig(
-        tenant_id="test-tenant",
-        client_id="test-client",
-        transport="sse",
-        sse_auth_enabled=True
+        tenant_id="test-tenant", client_id="test-client", transport="sse", sse_auth_enabled=True
     )
 
     # Create token
@@ -31,11 +30,13 @@ async def test_sse_server_accepts_valid_token(rsa_keys, sample_openapi_spec):
         tenant_id="test-tenant",
         client_id="test-client",
         email="user@example.com",
-        private_key=private_key
+        private_key=private_key,
     )
 
     # Mock OpenAPI spec fetching
-    with patch('heblo_mcp.server.fetch_and_patch_spec', new=AsyncMock(return_value=sample_openapi_spec)):
+    with patch(
+        "heblo_mcp.server.fetch_and_patch_spec", new=AsyncMock(return_value=sample_openapi_spec)
+    ):
         server = await create_server(config)
 
         # Verify server was created
@@ -45,14 +46,12 @@ async def test_sse_server_accepts_valid_token(rsa_keys, sample_openapi_spec):
 @pytest.mark.asyncio
 async def test_stdio_server_unchanged(mock_msal_app, mock_token_cache, sample_openapi_spec):
     """Test that stdio server creation is unchanged."""
-    config = HebloMCPConfig(
-        tenant_id="test-tenant",
-        client_id="test-client",
-        transport="stdio"
-    )
+    config = HebloMCPConfig(tenant_id="test-tenant", client_id="test-client", transport="stdio")
 
     # Mock OpenAPI spec fetching
-    with patch('heblo_mcp.server.fetch_and_patch_spec', new=AsyncMock(return_value=sample_openapi_spec)):
+    with patch(
+        "heblo_mcp.server.fetch_and_patch_spec", new=AsyncMock(return_value=sample_openapi_spec)
+    ):
         server = await create_server(config)
 
         # Verify server was created

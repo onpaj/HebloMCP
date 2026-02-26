@@ -1,7 +1,6 @@
 """JWT token validation for Azure AD tokens."""
 
 import time
-from typing import Dict, Optional
 
 import httpx
 import jwt
@@ -12,6 +11,7 @@ from heblo_mcp.user_context import UserContext
 
 class TokenValidationError(Exception):
     """Raised when token validation fails."""
+
     pass
 
 
@@ -38,11 +38,11 @@ class TokenValidator:
         self.jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
 
         # Cache for JWKS
-        self._jwks_cache: Optional[Dict] = None
+        self._jwks_cache: dict | None = None
         self._jwks_cache_time: float = 0
 
         # PyJWKClient for fetching and caching keys
-        self._jwk_client: Optional[PyJWKClient] = None
+        self._jwk_client: PyJWKClient | None = None
 
     async def validate_token(self, token: str) -> UserContext:
         """Validate JWT token and return user context.
@@ -66,9 +66,12 @@ class TokenValidator:
             # Find the matching key
             signing_key = None
             for key_data in jwks.get("keys", []):
-                if unverified_header.get("kid") == key_data.get("kid") or not unverified_header.get("kid"):
+                if unverified_header.get("kid") == key_data.get("kid") or not unverified_header.get(
+                    "kid"
+                ):
                     # Convert JWK to public key
                     from jwt import PyJWK
+
                     signing_key = PyJWK(key_data).key
                     break
 
@@ -87,7 +90,7 @@ class TokenValidator:
                     "verify_exp": True,
                     "verify_aud": True,
                     "verify_iss": True,
-                }
+                },
             )
 
             # Extract user information
@@ -95,12 +98,7 @@ class TokenValidator:
             object_id = payload.get("oid", "")
             tenant_id = payload.get("tid", "")
 
-            return UserContext(
-                email=email,
-                tenant_id=tenant_id,
-                object_id=object_id,
-                token=token
-            )
+            return UserContext(email=email, tenant_id=tenant_id, object_id=object_id, token=token)
 
         except jwt.ExpiredSignatureError:
             raise TokenValidationError("Token expired. Please refresh your authentication.")
@@ -115,7 +113,7 @@ class TokenValidator:
         except Exception as e:
             raise TokenValidationError(f"Token validation failed: {str(e)}")
 
-    async def _get_jwks(self) -> Dict:
+    async def _get_jwks(self) -> dict:
         """Get JWKS, using cache if available.
 
         Returns:
@@ -134,7 +132,7 @@ class TokenValidator:
 
         return jwks
 
-    async def _fetch_jwks(self) -> Dict:
+    async def _fetch_jwks(self) -> dict:
         """Fetch JWKS from Azure AD.
 
         Returns:

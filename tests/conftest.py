@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import httpx
 import pytest
@@ -121,7 +121,9 @@ def mock_token_cache(monkeypatch) -> Mock:
 
 
 @pytest.fixture
-def mock_heblo_auth(mock_config: HebloMCPConfig, mock_msal_app: Mock, mock_token_cache: Mock) -> HebloAuth:
+def mock_heblo_auth(
+    mock_config: HebloMCPConfig, mock_msal_app: Mock, mock_token_cache: Mock
+) -> HebloAuth:
     """Provide a mock HebloAuth instance with mocked MSAL.
 
     Args:
@@ -172,9 +174,7 @@ def sample_openapi_spec() -> dict[str, Any]:
                             "description": "Success",
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/CatalogListResponse"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/CatalogListResponse"}
                                 }
                             },
                         }
@@ -197,9 +197,7 @@ def sample_openapi_spec() -> dict[str, Any]:
                             "description": "Success",
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/CompositionResponse"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/CompositionResponse"}
                                 }
                             },
                         }

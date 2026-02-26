@@ -79,12 +79,8 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
         # Wrap the FastMCP app with auth middleware
         # Note: This requires access to the underlying ASGI app
         # FastMCP may need to expose this or we may need to wrap differently
-        if hasattr(mcp, 'app'):
-            mcp.app = SSEAuthMiddleware(
-                mcp.app,
-                token_validator,
-                bypass_health=True
-            )
+        if hasattr(mcp, "app"):
+            mcp.app = SSEAuthMiddleware(mcp.app, token_validator, bypass_health=True)
 
     return mcp
 
@@ -120,7 +116,7 @@ async def create_server_with_health(config: HebloMCPConfig | None = None) -> Fas
         return {
             "status": "healthy",
             "version": __version__,
-            "transport": config.transport if config else "auto"
+            "transport": config.transport if config else "auto",
         }
 
     return mcp

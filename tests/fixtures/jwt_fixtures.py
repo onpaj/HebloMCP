@@ -1,7 +1,6 @@
 """JWT token fixtures for testing."""
 
 import time
-from typing import Dict
 
 import jwt
 
@@ -36,7 +35,11 @@ def create_test_jwt(
 
     payload = {
         "aud": "wrong-client" if wrong_audience else client_id,
-        "iss": f"https://login.microsoftonline.com/wrong-tenant/v2.0" if wrong_issuer else f"https://login.microsoftonline.com/{tenant_id}/v2.0",
+        "iss": (
+            "https://login.microsoftonline.com/wrong-tenant/v2.0"
+            if wrong_issuer
+            else f"https://login.microsoftonline.com/{tenant_id}/v2.0"
+        ),
         "exp": exp,
         "iat": now,
         "nbf": now,
@@ -83,7 +86,7 @@ def create_test_rsa_keypair() -> tuple[str, str]:
     return private_pem, public_pem
 
 
-def create_test_jwks(public_key_pem: str, kid: str = "test-key-1") -> Dict:
+def create_test_jwks(public_key_pem: str, kid: str = "test-key-1") -> dict:
     """Create a test JWKS (JSON Web Key Set) from a public key.
 
     Args:
@@ -93,14 +96,14 @@ def create_test_jwks(public_key_pem: str, kid: str = "test-key-1") -> Dict:
     Returns:
         JWKS dictionary
     """
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.backends import default_backend
     import base64
+
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import serialization
 
     # Load public key
     public_key = serialization.load_pem_public_key(
-        public_key_pem.encode("utf-8"),
-        backend=default_backend()
+        public_key_pem.encode("utf-8"), backend=default_backend()
     )
 
     # Extract public numbers
@@ -108,9 +111,11 @@ def create_test_jwks(public_key_pem: str, kid: str = "test-key-1") -> Dict:
 
     # Convert to base64url
     def int_to_base64url(n):
-        return base64.urlsafe_b64encode(
-            n.to_bytes((n.bit_length() + 7) // 8, byteorder='big')
-        ).rstrip(b'=').decode('utf-8')
+        return (
+            base64.urlsafe_b64encode(n.to_bytes((n.bit_length() + 7) // 8, byteorder="big"))
+            .rstrip(b"=")
+            .decode("utf-8")
+        )
 
     return {
         "keys": [
