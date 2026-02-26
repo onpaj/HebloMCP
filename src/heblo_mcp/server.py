@@ -3,6 +3,7 @@
 import httpx
 from fastmcp import FastMCP
 
+from heblo_mcp import __version__
 from heblo_mcp.auth import HebloAuth, MSALBearerAuth
 from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.routes import get_route_maps
@@ -80,7 +81,7 @@ async def create_server_with_health(config: HebloMCPConfig | None = None) -> Fas
         """
         return {
             "status": "healthy",
-            "version": "0.1.0",
+            "version": __version__,
             "transport": "sse"
         }
 
