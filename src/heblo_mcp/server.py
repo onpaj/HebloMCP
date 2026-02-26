@@ -10,6 +10,7 @@ from heblo_mcp.config import HebloMCPConfig
 from heblo_mcp.routes import get_route_maps
 from heblo_mcp.spec import fetch_and_patch_spec
 from heblo_mcp.sse_auth import SSEAuthMiddleware
+from heblo_mcp.sse_bearer_auth import SSEBearerAuth
 from heblo_mcp.token_validator import TokenValidator
 
 
@@ -48,9 +49,11 @@ async def create_server(config: HebloMCPConfig | None = None) -> FastMCP:
         )
     else:
         # SSE mode: Auth handled by middleware, client uses token from request context
-        # For now, create client without auth (will be added per-request)
+        sse_auth = SSEBearerAuth()
+
         client = httpx.AsyncClient(
             base_url=config.api_base_url,
+            auth=sse_auth,
             timeout=60.0,
         )
 
