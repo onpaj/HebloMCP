@@ -1,8 +1,8 @@
 """Unit tests for server health endpoint."""
 
 import json
+
 import pytest
-from fastmcp import FastMCP
 
 from heblo_mcp import __version__
 from heblo_mcp.server import create_server_with_health
