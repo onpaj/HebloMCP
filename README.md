@@ -250,8 +250,8 @@ Add to your Claude Code MCP config:
       "transport": "sse",
       "auth": {
         "type": "oauth",
-        "tenant_id": "your-tenant-id",
-        "client_id": "your-client-id",
+        "tenant_id": "31fd4df1-b9c0-4abd-a4b0-0e1aceaabe9a",
+        "client_id": "baca6321-c6ca-4893-9174-d8054e5cca6b",
         "scope": "api://8b34be89-cef4-445a-929a-bc1a21dce0cb/access_as_user"
       }
     }
@@ -264,8 +264,8 @@ Add to your Claude Code MCP config:
 ```bash
 HEBLO_TRANSPORT=sse
 HEBLO_SSE_AUTH_ENABLED=true
-HEBLO_TENANT_ID=your-tenant-id
-HEBLO_CLIENT_ID=your-client-id
+HEBLO_TENANT_ID=31fd4df1-b9c0-4abd-a4b0-0e1aceaabe9a
+HEBLO_CLIENT_ID=baca6321-c6ca-4893-9174-d8054e5cca6b
 ```
 
 **Security:**
